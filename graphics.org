@@ -1,0 +1,4 @@
+
+
+* Useful Links
+- [[https://chortle.ccsu.edu/vectorlessons/vch12/vch12_3.html][Math needed for GP]]
