@@ -1,7 +1,7 @@
 #####################################
 # Project: Graphics-Pilot
 # Author: smpl
-# OS: Windows
+# OS: macOS
 #####################################
 
 # Compiler
@@ -15,26 +15,27 @@ SRC_DIR := src
 LIB_DIR := lib
 
 # GLFW paths
-GLFW_PATH := $(LIB_DIR)/GLFW/windows
+GLFW_PATH := $(LIB_DIR)/GLFW/macos
 
 # GLAD paths
-GLAD_PATH := $(LIB_DIR)/glad/windows
+GLAD_PATH := $(LIB_DIR)/glad/macos
 
 # I(include) & L(linking) flags
 INCLUDES := -I$(GLFW_PATH)/include -I$(GLAD_PATH)/include
-LIBS := -L$(GLFW_PATH)/lib -lglfw3 -lopengl32 -lgdi32 -static-libgcc -static-libstdc++
+LIBS := -L$(GLFW_PATH)/lib -lglfw3 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+
 
 # Source files (automatically find all .cpp and .c files)
 SOURCES := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*.c)
 
 # Target
-TARGET := $(BUILD_DIR)/out.exe
+TARGET := $(BUILD_DIR)/out
 
 # Build targets
 all: $(TARGET)
 
 $(TARGET): $(SOURCES)
-	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(SOURCES) -o $(TARGET) $(LIBS)
 	@echo Build complete!
 
@@ -44,10 +45,11 @@ debug: clean $(TARGET)
 	@echo Debug build complete!
 
 run: clean all
-	@$(TARGET)
+    # $(TARGET)
+	./$(TARGET)
 
 clean:
-	@if exist $(BUILD_DIR) rmdir /S /Q $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
 	@echo Clean complete!
 
 rebuild: clean all
@@ -62,13 +64,13 @@ info:
 
 # Help menu
 help:
-	@echo Available targets:
-	@echo   make          - Build the project (optimized)
-	@echo   make debug    - Build with debug symbols
-	@echo   make run      - Build and run the program
-	@echo   make clean    - Remove build artifacts
-	@echo   make rebuild  - Clean and build
-	@echo   make info     - Show build configuration
-	@echo   make help     - Show this help menu
+	@echo "Available targets:"
+	@echo "  make          - Build the project (optimized)"
+	@echo "  make debug    - Build with debug symbols"
+	@echo "  make run      - Build and run the program"
+	@echo "  make clean    - Remove build artifacts"
+	@echo "  make rebuild  - Clean and build"
+	@echo "  make info     - Show build configuration"
+	@echo "  make help     - Show this help menu"
 
 .PHONY: all debug run clean rebuild info help
