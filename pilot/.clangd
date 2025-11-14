@@ -1,0 +1,19 @@
+CompileFlags:
+  Add:
+    - -std=c++23
+    - -I/Users/smpl/dev/graphics/pilot/lib/GLFW/macos/include
+    - -I/Users/smpl/dev/graphics/pilot/lib/glad/macos/include
+    - -DGL_SILENCE_DEPRECATION
+    - -Wall
+    - -Wextra
+  Remove:
+    - -framework*
+
+Diagnostics:
+  UnusedIncludes: Strict
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+  Designators: Yes

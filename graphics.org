@@ -1,4 +1,43 @@
-
+#+Title: Graphics Programming Notes
+#+Author: smpl
+#+Date: 2025-11-13
 
 * Useful Links
-- [[https://chortle.ccsu.edu/vectorlessons/vch12/vch12_3.html][Math needed for GP]]
+   - [[https://chortle.ccsu.edu/vectorlessons/vch12/vch12_3.html][Math needed for GP]]
+
+* Graphics PipeLine  
+ - [[https://learnopengl.com/Getting-started/Hello-Triangle][Book-HelloTriangle]]
+
+** Stages
+- Vertex Shader => Geometry Shader => Shape/Primitive Assembly => Rasterization => 
+  => Fragment Shader => Tests & Blending
+
+** Explanation
+   - Stage 1:
+    - single vertex -> 'Vertex Shader'
+    - Transform 3D coordinates into differed 3D coordinates
+    - do basic processing on vertex attributes
+    - The advantage of using VBO is that
+
+
+   - collection of vertices that form a primitive -> 'Geometry Shader'
+
+   - all of vertices from either vertex shader or geometry shader, that form
+     one or more primitives and assembles all the points in the primitive 
+     shape given => primitive assembly
+
+   - output of primtive assembly => rasterization stage
+     Here it maps the resulting primitives to the corresponding pixels on screen
+
+   - rasterization stage outputs fragments
+   - clipping is done 
+   - then fragments are passed onto fragment shader 
+   - fragment shader calculates the final color of a pixel, it does this by using 
+     all the data it has: lights, shadows, color of lights, etc.
+
+   - after all color values are determined, the final object passes through 'alpha test'
+     and 'blending stage'
+   - checks for alpha vlaues and blends objects accordingly
+   - checks the corresponding depth & stencil value, and checks if resulting fragments are 
+     behind other objects and if so discards accordingly
+
