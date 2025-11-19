@@ -1,9 +1,11 @@
 CompileFlags:
   Add:
     - -std=c++23
-
     - -I/Users/smpl/dev/projects/graphics/pilot/lib/GLFW/macos/include
     - -I/Users/smpl/dev/projects/graphics/pilot/lib/glad/macos/include
+
+    # - -I/Users/sreddy/dev/projects/graphics/pilot/lib/GLFW/macos/include
+    # - -I/Users/sreddy/dev/projects/graphics/pilot/lib/glad/macos/include
 
     - -DGL_SILENCE_DEPRECATION
     - -Wall
