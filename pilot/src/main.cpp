@@ -6,7 +6,7 @@
 void resize_callback(GLFWwindow* window, int w, int h) {
     std::cout << window << " is resized" << std::endl;
     glViewport(0, 0, w, h);
-};
+}
 
 void process_input(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
@@ -16,10 +16,10 @@ void process_input(GLFWwindow* window) {
 
 const char* vertex_shader_source =
     "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 0) in vec2 aPos;\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
     "}\0";
 
 const char* fragment_shader_source =
@@ -30,9 +30,88 @@ const char* fragment_shader_source =
     "    frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
+const char* WIN_TITLE = "Hello Triangle";
 int SCR_WIDTH = 800, SCR_HEIGHT = 600;
 
 int main() {
+    if (!glfwInit()) return -1;
+
+    // Request OpenGL 3.3 Core Profile (required for macOS)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    GLFWwindow* window =
+        glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, WIN_TITLE, NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, resize_callback);
+
+    if (!gladLoadGL()) {
+        printf("Failed to initialize GLAD\n");
+        return -1;
+    }
+
+    // Triangle positions
+    float positions[6] = { -0.5f, -0.5f, 0.0f, 0.5f, 0.5f, -0.5f };
+
+    // VAO
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // VBO
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+    // Vertex attributes
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
+                          (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Compile vertex shader
+    unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
+    glCompileShader(vertex_shader);
+
+    // Compile fragment shader
+    unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
+    glCompileShader(fragment_shader);
+
+    // Link shader program
+    unsigned int shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
+
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
+
+    glUseProgram(shader_program);
+
+    // Render loop
+    while (!glfwWindowShouldClose(window)) {
+        process_input(window);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
+}
+
+int main_main() {
     std::cout << "Hello OpenGL" << std::endl;
 
     // glfw: initialize and configure
@@ -41,10 +120,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);                 // OpenGL 3.3
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
     // glfw window creation
     // --------------------
@@ -126,7 +201,7 @@ int main() {
     glBindVertexArray(vao);
 
     // 0. copy our vertices array in a buffer for OpenGL to use
-    glBindBuffer(GL_ARRAY_BUFFER, vbo); // bind our VBO to ARRAY_BUFFER
+    glad_glBindBuffer(GL_ARRAY_BUFFER, vbo); // bind our VBO to ARRAY_BUFFER
     // from now on, any buffer calls on ARRAY_BUFFER will be used to
     // configure our VBO1 since it was bounded to the ARRAY_BUFFER
     // copy user data into the currently bound buffer
