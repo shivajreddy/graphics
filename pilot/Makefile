@@ -12,13 +12,12 @@ DEBUGFLAGS := -g -DDEBUG
 BUILD_DIR := build
 SRC_DIR := src
 LIB_DIR := lib
-# GLFW paths
-GLFW_PATH := $(LIB_DIR)/GLFW/linux
+# GLFW paths (using system-installed GLFW on Linux)
 # GLAD paths
 GLAD_PATH := $(LIB_DIR)/glad/linux
 # I(include) & L(linking) flags
-INCLUDES := -I$(GLFW_PATH)/include -I$(GLAD_PATH)/include
-LIBS := -L$(GLFW_PATH)/lib -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+INCLUDES := -I$(GLAD_PATH)/include
+LIBS := -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
 # Source files (automatically find all .cpp and .c files)
 SOURCES := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*.c)
 # Target
