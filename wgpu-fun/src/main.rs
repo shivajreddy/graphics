@@ -1,6 +1,10 @@
 // https://youtube.com/playlist?list=PLn3eTxaOtL2PNbW4ou-APMV9W9m6nppYl
 
 use glfw::{Action, ClientApiHint, Key, Window, WindowHint, fail_on_errors};
+mod renderer_backend;
+use renderer_backend::pipeline_builder::PipelineBuilder;
+
+use crate::renderer_backend::pipeline_builder;
 
 struct State<'a> {
     instance: wgpu::Instance,
@@ -10,6 +14,7 @@ struct State<'a> {
     config: wgpu::SurfaceConfiguration,
     size: (i32, i32),
     window: &'a mut Window,
+    render_pipeline: wgpu::RenderPipeline,
 }
 
 impl<'a> State<'a> {
@@ -71,6 +76,11 @@ impl<'a> State<'a> {
         };
         surface.configure(&device, &config);
 
+        let mut pipeline_builder = PipelineBuilder::new();
+        pipeline_builder.set_shader_module("shaders/shader.wgsl", "vs_main", "fs_main");
+        pipeline_builder.set_pixel_format(config.format);
+        let render_pipeline = pipeline_builder.build_pipeline(&device);
+
         Self {
             instance,
             window,
@@ -79,6 +89,7 @@ impl<'a> State<'a> {
             queue,
             config,
             size,
+            render_pipeline,
         }
     }
 
@@ -115,7 +126,7 @@ impl<'a> State<'a> {
                         });
 
                 {
-                    let _render_pass =
+                    let mut render_pass =
                         command_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                             label: Some("Render Pass"),
                             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -137,6 +148,8 @@ impl<'a> State<'a> {
                             occlusion_query_set: None,
                             multiview_mask: None,
                         });
+                    render_pass.set_pipeline(&self.render_pipeline);
+                    render_pass.draw(0..3, 0..1);
                 }
 
                 self.queue.submit(std::iter::once(command_encoder.finish()));
@@ -206,6 +219,10 @@ async fn run() {
         state.render();
     }
 }
+
+// Chapter 3: Shaders
+// 1. write shader
+// 2. program that reads shader
 
 fn main() {
     pollster::block_on(run());
