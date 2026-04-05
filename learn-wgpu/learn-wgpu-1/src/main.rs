@@ -83,6 +83,6 @@ fn run() -> anyhow::Result<()> {
 }
 
 fn main() {
-    println!("Hello, world!");
+    println!("Learn Wpgu - 1");
     run().unwrap();
 }
