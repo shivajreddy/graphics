@@ -220,10 +220,6 @@ async fn run() {
     }
 }
 
-// Chapter 3: Shaders
-// 1. write shader
-// 2. program that reads shader
-
 fn main() {
     pollster::block_on(run());
 }
