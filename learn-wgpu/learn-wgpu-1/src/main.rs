@@ -66,6 +66,7 @@ impl ApplicationHandler<State> for App {
                 ..
             } => match (code, key_state.is_pressed()) {
                 (KeyCode::Escape, true) => event_loop.exit(),
+                (KeyCode::KeyQ, true) => event_loop.exit(),
                 _ => {}
             },
             _ => {}
