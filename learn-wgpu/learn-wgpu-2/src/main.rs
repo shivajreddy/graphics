@@ -21,6 +21,9 @@ struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
+
+    // debug
+    count: u32,
 }
 
 impl State {
@@ -37,13 +40,6 @@ impl State {
         // - adapter: its a handle to the actual GPU, used to create 'Device' & 'Queue'
         // - surface: its where the window can draw to
         let surface = instance.create_surface(window.clone()).unwrap();
-        // let adapter = instance
-        //     .request_adapter(&wgpu::RequestAdapterOptions {
-        //         power_preference: wgpu::PowerPreference::default(),
-        //         compatible_surface: Some(&surface),
-        //         force_fallback_adapter: false,
-        //     })
-        //     .await?;
         let adapter = instance
             .enumerate_adapters(wgpu::Backends::all())
             .await
@@ -86,7 +82,90 @@ impl State {
             queue,
             config,
             is_surface_configured: false,
+            // debug
+            count: 0,
         })
+    }
+
+    fn update(&mut self) {
+        self.count += 1;
+    }
+
+    fn resize(&mut self, width: u32, height: u32) {
+        if width > 0 && height > 0 {
+            self.config.width = width;
+            self.config.height = height;
+            self.surface.configure(&self.device, &self.config);
+            self.is_surface_configured = true;
+        }
+    }
+
+    fn render(&mut self) -> anyhow::Result<()> {
+        // println!("rederaw requested {}", self.count);
+        self.window.request_redraw();
+        // we cant render with out the surface being configured
+        if !self.is_surface_configured {
+            return Ok(());
+        }
+        let output = match self.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
+            wgpu::CurrentSurfaceTexture::Suboptimal(surface_texture) => {
+                self.surface.configure(&self.device, &self.config);
+                surface_texture
+            }
+            wgpu::CurrentSurfaceTexture::Timeout
+            | wgpu::CurrentSurfaceTexture::Occluded
+            | wgpu::CurrentSurfaceTexture::Validation => {
+                // skip this frame
+                return Ok(());
+            }
+            wgpu::CurrentSurfaceTexture::Lost => {
+                anyhow::bail!("Lost Device");
+            }
+            wgpu::CurrentSurfaceTexture::Outdated => {
+                self.surface.configure(&self.device, &self.config);
+                return Ok(());
+            }
+        };
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
+
+        // the `encoder.begin_render_pass()` takes &mut of `encoder`,
+        // so we cant call encoder.finish()
+        {
+            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Render Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.1,
+                            g: 0.2,
+                            b: 0.3,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+        }
+
+        self.queue.submit(std::iter::once(encoder.finish()));
+        output.present(); // present the surface
+
+        Ok(())
     }
 }
 
@@ -120,8 +199,17 @@ impl ApplicationHandler<State> for App {
         };
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
-            // WindowEvent::Resized(size) => state.resize(size),
-            WindowEvent::RedrawRequested => {}
+            WindowEvent::Resized(size) => state.resize(size.width, size.height),
+            WindowEvent::RedrawRequested => {
+                state.update();
+                match state.render() {
+                    Ok(_) => {}
+                    Err(e) => {
+                        log::error!("e");
+                        event_loop.exit();
+                    }
+                }
+            }
             WindowEvent::KeyboardInput {
                 event:
                     KeyEvent {
@@ -153,6 +241,5 @@ fn run_window() -> anyhow::Result<()> {
 }
 
 fn main() {
-    println!("redoing surface");
     run_window();
 }
